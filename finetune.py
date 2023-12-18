@@ -5,6 +5,7 @@ from typing import List
 import fire
 import torch
 import transformers
+from transformers import AutoModelForCausalLM, AutoTokenizer
 from datasets import load_dataset
 
 """
@@ -27,7 +28,7 @@ from utils.prompter import Prompter
 
 def train(
     # model/data params
-    base_model: str = "",  # the only required argument
+    base_model: str = "rinna/japanese-gpt2-medium",  # the only required argument
     data_path: str = "yahma/alpaca-cleaned",
     output_dir: str = "./lora-alpaca",
     # training hyperparams
@@ -109,14 +110,21 @@ def train(
     if len(wandb_log_model) > 0:
         os.environ["WANDB_LOG_MODEL"] = wandb_log_model
 
-    model = LlamaForCausalLM.from_pretrained(
+    # model = LlamaForCausalLM.from_pretrained(
+    #     base_model,
+    #     load_in_8bit=True,
+    #     torch_dtype=torch.float16,
+    #     device_map=device_map,
+    # )
+    model = AutoModelForCausalLM.from_pretrained(
         base_model,
         load_in_8bit=True,
         torch_dtype=torch.float16,
         device_map=device_map,
     )
 
-    tokenizer = LlamaTokenizer.from_pretrained(base_model)
+    # tokenizer = LlamaTokenizer.from_pretrained(base_model)
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
 
     tokenizer.pad_token_id = (
         0  # unk. we want this to be different from the eos token
